@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="agromonitor-backend" default="jar" basedir=".">
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="jar.name" value="agromonitor-backend.jar"/>
+
+    <property name="postgresql.version" value="42.7.4"/>
+    <property name="gson.version" value="2.11.0"/>
+    <property name="postgresql.jar" value="postgresql-${postgresql.version}.jar"/>
+    <property name="gson.jar" value="gson-${gson.version}.jar"/>
+    <property name="maven.central" value="https://repo1.maven.org/maven2"/>
+    <property name="postgresql.url"
+              value="${maven.central}/org/postgresql/postgresql/${postgresql.version}/${postgresql.jar}"/>
+    <property name="gson.url"
+              value="${maven.central}/com/google/code/gson/gson/${gson.version}/${gson.jar}"/>
+
+    <path id="classpath">
+        <fileset dir="${lib.dir}" includes="*.jar"/>
+    </path>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="fetch-deps" description="Descarga Gson y PostgreSQL JDBC en lib/">
+        <mkdir dir="${lib.dir}"/>
+        <get dest="${lib.dir}/${postgresql.jar}" src="${postgresql.url}" skipexisting="true"/>
+        <get dest="${lib.dir}/${gson.jar}" src="${gson.url}" skipexisting="true"/>
+    </target>
+
+    <target name="compile" depends="fetch-deps">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false" encoding="UTF-8" release="21">
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+
+    <target name="jar" depends="compile">
+        <jar destfile="${build.dir}/${jar.name}" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="com.agromonitor.Main"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run" depends="jar">
+        <java classname="com.agromonitor.Main" fork="true">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${build.dir}/${jar.name}"/>
+            </classpath>
+        </java>
+    </target>
+</project>
