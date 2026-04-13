@@ -1,20 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="agromonitor-backend" default="jar" basedir=".">
     <property name="src.dir" value="src"/>
+    <property name="test.src.dir" value="test"/>
     <property name="build.dir" value="build"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="test.classes.dir" value="${build.dir}/test-classes"/>
     <property name="lib.dir" value="lib"/>
     <property name="jar.name" value="agromonitor-backend.jar"/>
 
     <property name="postgresql.version" value="42.7.4"/>
     <property name="gson.version" value="2.11.0"/>
+    <property name="junit.console.version" value="1.12.2"/>
     <property name="postgresql.jar" value="postgresql-${postgresql.version}.jar"/>
     <property name="gson.jar" value="gson-${gson.version}.jar"/>
+    <property name="junit.console.jar" value="junit-platform-console-standalone-${junit.console.version}.jar"/>
     <property name="maven.central" value="https://repo1.maven.org/maven2"/>
     <property name="postgresql.url"
               value="${maven.central}/org/postgresql/postgresql/${postgresql.version}/${postgresql.jar}"/>
     <property name="gson.url"
               value="${maven.central}/com/google/code/gson/gson/${gson.version}/${gson.jar}"/>
+    <property name="junit.console.url"
+              value="${maven.central}/org/junit/platform/junit-platform-console-standalone/${junit.console.version}/${junit.console.jar}"/>
 
     <path id="classpath">
         <fileset dir="${lib.dir}" includes="*.jar"/>
@@ -28,6 +34,7 @@
         <mkdir dir="${lib.dir}"/>
         <get dest="${lib.dir}/${postgresql.jar}" src="${postgresql.url}" skipexisting="true"/>
         <get dest="${lib.dir}/${gson.jar}" src="${gson.url}" skipexisting="true"/>
+        <get dest="${lib.dir}/${junit.console.jar}" src="${junit.console.url}" skipexisting="true"/>
     </target>
 
     <target name="compile" depends="fetch-deps">
@@ -51,6 +58,30 @@
                 <path refid="classpath"/>
                 <pathelement location="${build.dir}/${jar.name}"/>
             </classpath>
+        </java>
+    </target>
+
+    <target name="compile-test" depends="compile">
+        <mkdir dir="${test.classes.dir}"/>
+        <javac srcdir="${test.src.dir}" destdir="${test.classes.dir}" includeantruntime="false" encoding="UTF-8" release="21">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${classes.dir}"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="test" depends="compile-test" description="Ejecuta tests JUnit 5 (requiere PostgreSQL activo)">
+        <java classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${classes.dir}"/>
+                <pathelement location="${test.classes.dir}"/>
+                <pathelement location="${lib.dir}/${junit.console.jar}"/>
+            </classpath>
+            <arg value="--scan-classpath"/>
+            <arg value="${test.classes.dir}"/>
+            <arg value="--details=tree"/>
         </java>
     </target>
 </project>

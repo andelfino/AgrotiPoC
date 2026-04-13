@@ -18,12 +18,16 @@ public final class DbConfig {
         //   JDBC_URL     -> jdbc:postgresql://localhost:15432/agromonitor
         //   DB_USER      -> agro
         //   DB_PASSWORD  -> agro
-        this.jdbcUrl = env("JDBC_URL", "jdbc:postgresql://localhost:15432/agromonitor");
-        this.user = env("DB_USER", "agro");
-        this.password = env("DB_PASSWORD", "agro");
+        this.jdbcUrl = setting("JDBC_URL", "jdbc:postgresql://localhost:15432/agromonitor");
+        this.user = setting("DB_USER", "agro");
+        this.password = setting("DB_PASSWORD", "agro");
     }
 
-    private static String env(String key, String defaultValue) {
+    private static String setting(String key, String defaultValue) {
+        String fromProperty = System.getProperty(key);
+        if (fromProperty != null && !fromProperty.isBlank()) {
+            return fromProperty;
+        }
         String v = System.getenv(key);
         return (v == null || v.isBlank()) ? defaultValue : v;
     }
